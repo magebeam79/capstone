@@ -41,3 +41,26 @@ def clean_data(find_files):
     report_year['Date'] = pd.to_datetime(report_year['Date'])
 
     return report_year
+
+def run_totals(find_totals):
+    totals = find_totals
+
+    """add a total final value fee column"""
+    totals['Final Value Fee - total'] = totals['Final Value Fee - fixed'] + totals['Final Value Fee - variable']
+
+    """add a gross sales amount that totals the transaction amount with the shipping and handling"""
+    totals['Gross sales'] = totals['Transaction amount'] + totals['Shipping and handling']
+
+    """add a net sales amount that subtracts the total final value fees from the gross sales"""
+    totals['Net sales'] = totals['Gross sales'] - totals['Final Value Fee - total']
+
+    """reorder the columns"""
+    totals = totals[['Date', 'Order number', 'Item title', 'Quantity', 'Transaction amount',
+                     'Shipping and handling', 'Gross sales',
+                     'Final Value Fee - fixed', 'Final Value Fee - variable', 'Final Value Fee - total', 'Net sales']]
+
+    # print(totals.describe())
+    # print(totals.to_string())
+
+    """group by Date sorted by gross transaction amount"""
+    return totals.groupby(pd.Grouper(key='Date', axis=0, freq='M')).sum()
