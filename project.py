@@ -6,6 +6,15 @@ import matplotlib.pyplot as plt
 import os
 import shutil
 
+def main():
+    year = input("Please enter a yearly report needed: ")
+    find_files = input_year(year)
+    find_totals = clean_data(find_files)
+    totals = (run_totals(find_totals))
+    print(run_totals(find_totals))
+    (yearly_report(totals, year))
+    graph(year)
+
 def input_year(year):
     """find sales reports for the inputted year"""
     find_files = pd.concat(map(pd.read_csv, glob.glob(f"monthly_reports/*{year}.csv")))
@@ -82,3 +91,6 @@ def graph(year):
     """Save sales graph"""
     plt.savefig(f"{year}_sales_graph.png")
     plt.show()
+
+if __name__ == '__main__':
+    main()
