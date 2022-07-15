@@ -64,3 +64,21 @@ def run_totals(find_totals):
 
     """group by Date sorted by gross transaction amount"""
     return totals.groupby(pd.Grouper(key='Date', axis=0, freq='M')).sum()
+
+def graph(year):
+
+    """configure bar graph for monthly sales for year"""
+    data = pd.read_csv('monthly_totals.csv')
+    df = pd.DataFrame(data)
+
+    plt.rcParams['figure.figsize'] = [10, 6]
+    plt.rcParams['figure.autolayout'] = True
+    plt.tick_params(rotation=45)
+    plt.bar(df['Date'], df['Gross sales'], color='cyan', edgecolor = 'darkblue')
+    plt.title(f"Monthly Gross Sales\n{year}", fontsize = 16)
+    plt.xlabel("Month")
+    plt.ylabel("Sales in USD ($)")
+
+    """Save sales graph"""
+    plt.savefig(f"{year}_sales_graph.png")
+    plt.show()
