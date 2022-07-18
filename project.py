@@ -8,8 +8,16 @@ import shutil
 import sys
 from datetime import datetime
 import re
+from memory_profiler import profile
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
+from email.mime.application import MIMEApplication
+from email.mime.text import MIMEText
+from dotenv import load_dotenv
 
 
+@profile
 def main():
     year = input("Please enter a yearly report needed: ")
     check_year(year)
@@ -20,6 +28,8 @@ def main():
     run_totals(find_totals)
     (yearly_report(totals, year))
     graph(year)
+    load_dotenv()
+    send_email(year)
 
 
 def check_year(year):
@@ -38,13 +48,12 @@ def check_year(year):
             else:
                 sys.exit(f'Please enter a four digit year between 2020 and {current_year}.')
 
-        except ValueError:
-            print("Please enter a valid four digit year.")
-            break
+        except Exception as e:
+            sys.exit(e)
 
 
 def check_path(year):
-    """verify file path with given year"""
+    """verify file path with given year exists"""
     path = f"monthly_reports/*{year}.csv"
 
     if glob.glob(path):
@@ -112,6 +121,7 @@ def run_totals(find_totals):
                      'Shipping and handling', 'Gross sales',
                      'Final Value Fee - fixed', 'Final Value Fee - variable', 'Final Value Fee - total', 'Net sales']]
 
+    """retain for testing purposes"""
     # print(totals.describe())
     # print(totals.to_string())
 
@@ -120,6 +130,8 @@ def run_totals(find_totals):
 
 
 def yearly_report(totals, year):
+
+    """correct index from grouper"""
     totals.reset_index(inplace=True)
     year = str(year)
 
@@ -147,7 +159,7 @@ def graph(year):
     plt.xlabel('Month')
     plt.ylabel('Sales in USD ($)')
 
-    """Save sales graph"""
+    """save sales graph"""
     plt.savefig('sales_graph.png')
     plt.show()
 
@@ -157,6 +169,39 @@ def graph(year):
     else:
         shutil.copy('sales_graph.png', 'yearly_reports/sales_graph.png')
         os.rename('yearly_reports/sales_graph.png', f'yearly_reports/sales_graph_{year}.png')
+
+
+def send_email(year):
+    """create and send email with yearly_reports and sales_graph"""
+
+    """environment variables to obfuscate sensitive user data"""
+    USER_EMAIL = os.getenv("USER_EMAIL")
+    USER_PASS = os.getenv("USER_PASS")
+    REC_EMAIL = os.getenv("REC_EMAIL")
+
+    """construct email"""
+    msg = MIMEMultipart()
+    msg['From'] = USER_EMAIL
+    msg['To'] = REC_EMAIL
+    msg['Subject'] = f"Yearly report and graph for year ending {year}"
+    body = f"Please see the following attachments for year ending {year}. These need to be saved in monthly_reports for yearly reporting."
+    msg.attach(MIMEText(body, 'plain'))
+
+    """attach .csv file and image file to email"""
+    img_data = open(f'yearly_reports/sales_graph_{year}.png', 'rb').read()
+    msg.attach(MIMEImage(img_data, name=os.path.basename(f'sales_graph_{year}.png')))
+
+    csv_data = open(f'yearly_reports/monthly_totals_{year}.csv', 'rb').read()
+    msg.attach(MIMEApplication(csv_data, name=os.path.basename(f'monthly_totals_{year}. csv')))
+
+    """connect to the email server, send email and quit"""
+    smtp = smtplib.SMTP('smtp.gmail.com', 587)
+    smtp.ehlo()
+    smtp.starttls()
+    smtp.login(USER_EMAIL, USER_PASS)
+    text = msg.as_string()
+    smtp.sendmail(USER_EMAIL, REC_EMAIL, text)
+    smtp.quit()
 
 
 if __name__ == '__main__':
