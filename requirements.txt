@@ -6,3 +6,10 @@ import shutil
 import sys
 from datetime import datetime
 import re
+from memory_profiler import profile
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
+from email.mime.application import MIMEApplication
+from email.mime.text import MIMEText
+from dotenv import load_dotenv
