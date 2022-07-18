@@ -1,4 +1,4 @@
-#project.py eBay yearly sales reports
+# EBAY YEARLY SALES REPORTS FROM MONTHLY CSV FILES
 
 This is a program designed to take monthly sales reports in csv file format and produce accounting numbers for gross sales including shipping charges, total fees charged by the platform, and net sales.
 
