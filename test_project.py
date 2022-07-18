@@ -4,6 +4,7 @@ import pandas as pd
 import glob
 import pytest
 import datatest as dt
+import re
 
 
 @pytest.fixture(scope='module')
@@ -39,22 +40,26 @@ def df():
 
     return report_year
 
+
+def test_check_year(monkeypatch):
+    """validate that input year is four digits between 2020 and the current year"""
+    monkeypatch.setattr('builtins.input', lambda _: '2020')
+    year = input("Please enter a yearly report needed: ")
+    pattern = r'(^20[2][0-9]$)'
+    assert re.match(pattern, str(year))
+
+
 def test_columns(df):
+    """validate that columns match given columns"""
     dt.validate(
         df.columns,
-        {'Date','Order number','Item title','Quantity','Shipping and handling',
-         'Final Value Fee - fixed','Final Value Fee - variable','Transaction amount'},
+        {'Date', 'Order number', 'Item title', 'Quantity', 'Shipping and handling',
+         'Final Value Fee - fixed', 'Final Value Fee - variable', 'Transaction amount'},
     )
 
-# def test_dates(df):
-#     dt.validate.regex(df['Date'], r'^[\d]')
 
 def test_input_year(monkeypatch):
+    """validate that given input year matches year"""
     monkeypatch.setattr('builtins.input', lambda _: '2020')
     year = input("Please enter a yearly report needed: ")
     assert year == '2020'
-
-# def test_amount(df):
-#     dt.validate(df['Transaction amount'], float)
-
-
